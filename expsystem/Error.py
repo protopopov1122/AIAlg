@@ -1,0 +1,2 @@
+class ExpSystemException(BaseException):
+    pass
