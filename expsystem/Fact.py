@@ -49,6 +49,9 @@ class FactBase:
             res += hash(key) + hash(value) * 1000
         return res
 
+    def __len__(self):
+        return len(self._fact)
+
 
 class Fact(FactBase):
     def __init__(self, *args, **kwargs):

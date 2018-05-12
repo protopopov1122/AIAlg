@@ -18,8 +18,8 @@ class Engine:
     def _iterate(self, knowledge, rules):
         strategy = self._strategy(knowledge)
         for rule in rules:
-            res = rule(strategy.get_knowledge())
-            strategy.add(rule, res)
+            complexity, res = rule(strategy.get_knowledge())
+            strategy.add(rule, complexity, res)
             if strategy.is_finished():
                 break
         activated_rules = strategy.get_activated_rules()
