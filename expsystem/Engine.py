@@ -1,17 +1,26 @@
 class Engine:
-    def __init__(self, *args):
+    def __init__(self, strategy, *args):
+        self._strategy = strategy
         self._rules = list(args)
 
     def add_rule(self, rule):
         self._rules.append(rule)
 
     def process(self, knowledge):
-        knowledge_copy = knowledge.clone()
         process = True
+        rules: list = self._rules.copy()
         while process:
-            process = False
-            start_len = len(knowledge_copy)
-            for rule in self._rules:
-                rule(knowledge_copy)
-            process = process or len(knowledge_copy) > start_len
-        return knowledge_copy
+            start_len = len(knowledge)
+            knowledge, rules = self._iterate(knowledge, rules)
+            process = len(knowledge) > start_len and len(rules) > 0
+        return knowledge
+
+    def _iterate(self, knowledge, rules):
+        strategy = self._strategy(knowledge)
+        for rule in rules:
+            res = rule(strategy.get_knowledge())
+            strategy.add(rule, res)
+            if strategy.is_finished():
+                break
+        activated_rules = strategy.get_activated_rules()
+        return strategy.get_knowledge(), [rule for rule in rules if rule not in activated_rules]

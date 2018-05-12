@@ -4,7 +4,15 @@ def Rule(pattern):
             if pattern.matches(knowledge):
                 match = pattern.match(knowledge)
                 res = func(knowledge, match=match, *args, **kwargs)
-            else:
-                return None
+                if type(res) == list or type(res) == tuple:
+                    return set(res)
+                elif res is not None:
+                    rs = set()
+                    rs.add(res)
+                    return rs
         return wrapper
     return decorator
+
+
+def Product(pattern, *args):
+    return Rule(pattern)(lambda knowledge, match: args)
