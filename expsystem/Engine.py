@@ -18,9 +18,10 @@ class Engine:
     def _iterate(self, knowledge, rules):
         strategy = self._strategy(knowledge)
         for rule in rules:
-            complexity, res = rule(strategy.get_knowledge())
-            strategy.add(rule, complexity, res)
-            if strategy.is_finished():
-                break
+            res = rule(strategy.get_knowledge())
+            if res is not None:
+                strategy.add(rule, res['product'], **{key: value for key, value in res.items() if key != 'product'})
+                if strategy.is_finished():
+                    break
         activated_rules = strategy.get_activated_rules()
         return strategy.get_knowledge(), [rule for rule in rules if rule not in activated_rules]

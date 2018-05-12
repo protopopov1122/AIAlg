@@ -1,3 +1,5 @@
+import sys
+
 class Match:
     def __eq__(self, other):
         return self.matches(other)
@@ -66,7 +68,7 @@ class SmartMatch(Match):
 
 class ExistsMatch(Match):
     def complexity(self):
-        return 0
+        return sys.float_info.min
 
     def matches(self, value):
         return True

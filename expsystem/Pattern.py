@@ -76,7 +76,7 @@ class AndPattern(PatternBase):
                 return -1, None
             else:
                 if len(m[1]) > 0:
-                    match.append(m)
+                    match.append(m[1])
                 complexity += m[0]
         return complexity, match
 
@@ -103,9 +103,9 @@ class OrPattern(PatternBase):
         for pattern in self._patterns:
             m = pattern.match(knowledge)
             if m[1] is not None:
-                if len(m[1]) > 0 and (match[0] == -1 or m[0] < match[0]):
+                if len(m[1]) > 0 and m[0] > match[0]:
                     match = m
-                elif m[0] > 0 and (match[0] == -1 or m[0] < match[0]):
+                elif m[0] > 0 and match[0] == -1:
                     match = m
         return match
 

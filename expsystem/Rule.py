@@ -1,22 +1,33 @@
-def Rule(pattern):
+def Rule(pattern, priority: int=0):
     def decorator(func):
         def wrapper(knowledge, *args, **kwargs):
             if pattern.matches(knowledge):
-                match = pattern.match(knowledge)
-                res = func(knowledge, match=match, *args, **kwargs)
+                complexity, match = pattern.match(knowledge)
+                res = func(knowledge, *args, **kwargs)
                 if type(res) == list or type(res) == tuple:
-                    return match[0], set(res)
+                    return {
+                        'complexity': complexity,
+                        'product': set(res),
+                        'priority': priority
+                    }
                 elif res is not None:
                     rs = set()
                     rs.add(res)
-                    return match[0], rs
-            return -1, None
+                    return {
+                        'complexity': complexity,
+                        'product': rs,
+                        'priority': priority
+                    }
+            return None
         wrapper.pattern = pattern
         return wrapper
     return decorator
 
 
-def Product(pattern, *args):
-    def fn(knowledge, match):
+def Product(pattern, *args, **kwargs):
+    def fn(knowledge):
         return args
-    return Rule(pattern)(fn)
+    if 'priority' in kwargs:
+        return Rule(pattern, kwargs['priority'])(fn)
+    else:
+        return Rule(pattern)(fn)

@@ -4,31 +4,31 @@ from expsystem.Match import Match
 from expsystem.Rule import Rule, Product
 from expsystem.Knowledge import Knowledge
 from expsystem.Engine import Engine
-from expsystem.Strategy import ComplexityBasedStrategy
+from expsystem.Strategy import ComplexityBasedStrategy, PriorityBasedStrategy
 
 
 @Rule(Pattern(light='green'))
-def rule1(knowledge, match):
+def rule1(knowledge):
     return Fact('can_cross', cauntion=False)
 
 
 @Rule(Pattern(light='yellow') & Pattern(has_cars=False))
-def rule2(knowledge, match):
+def rule2(knowledge):
     return Fact('can_cross', cauntion=True)
 
 
 @Rule(Pattern('risky') & Pattern(peds=Match.smart(lambda x: x < 5)) & Pattern(light=Match.any_of('green', 'yellow')))
-def rule5(knowledge, match):
+def rule5(knowledge):
     return Fact('break_the_rules')
 
 
 @Rule(Pattern(light=Match.any_of('green', 'yellow')) & ~Pattern('break_the_rules'))
-def rule3(knowledge, match):
+def rule3(knowledge):
     return Fact(can_drive=False)
 
 
 @Rule(Pattern(light='red'))
-def rule4(knowledge, match):
+def rule4(knowledge):
     return Fact('can_drive'), Fact(can_cross=True)
 
 
@@ -42,10 +42,10 @@ def main():
 def main2():
     knowledge = Knowledge(Fact(number=1), Fact(number=2), Fact(number=3))
     rules = [
-        Product(Pattern(number=1) & ~Pattern('cond'), Fact('one')),
-        Product(Pattern(number=2) & ~Pattern('cond'), Fact('two')),
-        Product(Pattern(number=3) & ~Pattern('cond'), Fact('three')),
-        Product(Pattern(number=1) & Pattern(number=2) & Pattern(number=3), Fact('cond')),
+        Product(Pattern(number=1) & ~Pattern('cond'), Fact('one'), priority=10),
+        Product(Pattern(number=2) & ~Pattern('cond'), Fact('two'), priority=10),
+        Product(Pattern(number=3) & ~Pattern('cond'), Fact('three'), priority=10),
+        Product(Pattern(number=1) & Pattern(number=2) & Pattern(number=3), Fact('cond'), priority=0),
     ]
     eng = Engine(ComplexityBasedStrategy(), *rules)
     print(eng.process(knowledge) - knowledge)

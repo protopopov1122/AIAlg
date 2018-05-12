@@ -3,7 +3,7 @@ import abc
 
 class AbstractStrategy(abc.ABC):
     @abc.abstractmethod
-    def add(self, rule, complexity, product): pass
+    def add(self, rule, product, **params): pass
 
     @abc.abstractmethod
     def is_finished(self): pass
@@ -22,7 +22,7 @@ class FifoStrategyFactory(AbstractStrategy):
         self._finish_on_first = finish_on_first
         self._activate_all_rules = activate_all_rules
 
-    def add(self, rule, complexity, product):
+    def add(self, rule, product, **params):
         if product is not None:
             self._products.append((rule, product))
 
@@ -57,7 +57,7 @@ class AllInStrategy(AbstractStrategy):
         self._knowledge = knowledge
         self._rules = list()
 
-    def add(self, rule, complexity, product):
+    def add(self, rule, product, **params):
         if product is not None:
             self._knowledge += product
             self._rules.append(rule)
@@ -78,8 +78,9 @@ class ComplexityBasedStrategyFactory(AbstractStrategy):
         self._products = list()
         self._reversed = reversed
 
-    def add(self, rule, complexity, product):
+    def add(self, rule, product, **params):
         if product:
+            complexity = params['complexity'] if 'complexity' in params else 0
             self._products.append((rule, product, complexity))
             self._products.sort(key=lambda product: product[2], reverse=not self._reversed)
 
@@ -108,4 +109,44 @@ class ComplexityBasedStrategyFactory(AbstractStrategy):
 def ComplexityBasedStrategy(reversed: bool = False):
     def fn(knowledge):
         return ComplexityBasedStrategyFactory(knowledge, reversed)
+    return fn
+
+
+class PriorityBasedStrategyFactory(AbstractStrategy):
+    def __init__(self, knowledge, reversed: bool = False):
+        self._knowledge = knowledge
+        self._products = list()
+        self._reversed = reversed
+
+    def add(self, rule, product, **params):
+        if product:
+            priority = params['priority'] if 'priority' in params else 0
+            self._products.append((rule, product, priority))
+            self._products.sort(key=lambda product: product[2], reverse=self._reversed)
+
+    def is_finished(self):
+        return False
+
+    def _get_opt_product(self):
+        if self._products:
+            return self._products[0]
+
+    def get_knowledge(self):
+        product = self._get_opt_product()
+        if product:
+            return self._knowledge + product[1]
+        else:
+            return self._knowledge
+
+    def get_activated_rules(self):
+        product = self._get_opt_product()
+        if product:
+            return [product[0]]
+        else:
+            return list()
+
+
+def PriorityBasedStrategy(reversed: bool = False):
+    def fn(knowledge):
+        return PriorityBasedStrategyFactory(knowledge, reversed)
     return fn
