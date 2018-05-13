@@ -1,8 +1,17 @@
-from expsystem.Fact import FactBase, Fact
+import abc
+from expsystem.Fact import FactBase
 from expsystem.Match import Match
 
 
-class PatternBase:
+class PatternMatch(list):
+    def __getattr__(self, item):
+        return self.__dict__[item]
+
+    def __setattr__(self, key, value):
+        self.__dict__[key] = value
+
+
+class PatternBase(abc.ABC):
     def And(self, other):
         return AndPattern(self, other)
 
@@ -11,6 +20,15 @@ class PatternBase:
 
     def Not(self):
         return NotPattern(self)
+
+    @abc.abstractmethod
+    def complexity(self): pass
+
+    @abc.abstractmethod
+    def matches(self, knowledge): pass
+
+    @abc.abstractmethod
+    def match(self, knowledge): pass
 
     def __or__(self, other):
         return self.Or(other)
@@ -38,7 +56,7 @@ class Pattern(PatternBase, FactBase):
             return 1
 
     def complexity(self):
-        return sum(value for value in self._fact.values())
+        return sum(self._eval_complexity(value) for value in self._fact.values())
 
     def matches(self, knowledge):
         for fact in knowledge:
@@ -49,8 +67,10 @@ class Pattern(PatternBase, FactBase):
     def match(self, knowledge):
         for fact in knowledge:
             if self == fact:
-                return sum(Pattern._eval_complexity(value) for value in fact._fact.values()), fact
-        return -1, None
+                match = PatternMatch()
+                match.append(fact)
+                match.complexity = sum(Pattern._eval_complexity(value) for value in fact._fact.values())
+                return match
 
 
 class AndPattern(PatternBase):
@@ -68,17 +88,16 @@ class AndPattern(PatternBase):
         return True
 
     def match(self, knowledge):
-        match = list()
-        complexity = 0
+        match = PatternMatch()
+        match.complexity = 0
         for pattern in self._patterns:
-            m = pattern.match(knowledge)
-            if m[1] is None:
-                return -1, None
+            pmatch = pattern.match(knowledge)
+            if pmatch is not None:
+                match.complexity += pmatch.complexity
+                match.extend(pmatch)
             else:
-                if len(m[1]) > 0:
-                    match.append(m[1])
-                complexity += m[0]
-        return complexity, match
+                return
+        return match
 
     def __str__(self):
         return ' & '.join(str(p) for p in self._patterns)
@@ -99,15 +118,10 @@ class OrPattern(PatternBase):
         return False
 
     def match(self, knowledge):
-        match = -1, None
         for pattern in self._patterns:
-            m = pattern.match(knowledge)
-            if m[1] is not None:
-                if len(m[1]) > 0 and m[0] > match[0]:
-                    match = m
-                elif m[0] > 0 and match[0] == -1:
-                    match = m
-        return match
+            match = pattern.match(knowledge)
+            if match is not None:
+                return match
 
     def __str__(self):
         return ' | '.join(str(p) for p in self._patterns)
@@ -125,7 +139,9 @@ class NotPattern(PatternBase):
         return not self._pattern.matches(knowledge)
 
     def match(self, knowledge):
-        return self.complexity(), Fact()
+        match = PatternMatch()
+        match.complexity = self.complexity()
+        return match
 
     def __str__(self):
         return '~{}'.format(self._pattern)

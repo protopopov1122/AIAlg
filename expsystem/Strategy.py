@@ -80,7 +80,7 @@ class ComplexityBasedStrategyFactory(AbstractStrategy):
 
     def add(self, rule, product, **params):
         if product:
-            complexity = params['complexity'] if 'complexity' in params else 0
+            complexity = params['match'].complexity if 'match' in params else 0
             self._products.append((rule, product, complexity))
             self._products.sort(key=lambda product: product[2], reverse=not self._reversed)
 

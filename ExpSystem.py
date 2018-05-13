@@ -8,27 +8,27 @@ from expsystem.Strategy import ComplexityBasedStrategy, PriorityBasedStrategy
 
 
 @Rule(Pattern(light='green'))
-def rule1(knowledge):
+def rule1(knowledge, match):
     return Fact('can_cross', cauntion=False)
 
 
 @Rule(Pattern(light='yellow') & Pattern(has_cars=False))
-def rule2(knowledge):
+def rule2(knowledge, match):
     return Fact('can_cross', cauntion=True)
 
 
 @Rule(Pattern('risky') & Pattern(peds=Match.smart(lambda x: x < 5)) & Pattern(light=Match.any_of('green', 'yellow')))
-def rule5(knowledge):
+def rule5(knowledge, match):
     return Fact('break_the_rules')
 
 
 @Rule(Pattern(light=Match.any_of('green', 'yellow')) & ~Pattern('break_the_rules'))
-def rule3(knowledge):
+def rule3(knowledge, match):
     return Fact(can_drive=False)
 
 
 @Rule(Pattern(light='red'))
-def rule4(knowledge):
+def rule4(knowledge, match):
     return Fact('can_drive'), Fact(can_cross=True)
 
 
@@ -45,7 +45,7 @@ def main2():
         Product(Pattern(number=1) & ~Pattern('cond'), Fact('one'), priority=10),
         Product(Pattern(number=2) & ~Pattern('cond'), Fact('two'), priority=10),
         Product(Pattern(number=3) & ~Pattern('cond'), Fact('three'), priority=10),
-        Product(Pattern(number=1) & Pattern(number=2) & Pattern(number=3), Fact('cond'), priority=0),
+        Product(Pattern(number=1) & Pattern(number=2) & Pattern(number=3), lambda k, m: Fact('cond'), priority=0),
     ]
     eng = Engine(ComplexityBasedStrategy(), *rules)
     print(eng.process(knowledge) - knowledge)

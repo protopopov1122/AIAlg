@@ -1,12 +1,15 @@
+import types
+
+
 def Rule(pattern, priority: int=0):
     def decorator(func):
         def wrapper(knowledge, *args, **kwargs):
             if pattern.matches(knowledge):
-                complexity, match = pattern.match(knowledge)
-                res = func(knowledge, *args, **kwargs)
+                match = pattern.match(knowledge)
+                res = func(knowledge, match, *args, **kwargs)
                 if type(res) == list or type(res) == tuple:
                     return {
-                        'complexity': complexity,
+                        'match': match,
                         'product': set(res),
                         'priority': priority
                     }
@@ -14,19 +17,23 @@ def Rule(pattern, priority: int=0):
                     rs = set()
                     rs.add(res)
                     return {
-                        'complexity': complexity,
+                        'match': match,
                         'product': rs,
                         'priority': priority
                     }
-            return None
         wrapper.pattern = pattern
         return wrapper
     return decorator
 
 
 def Product(pattern, *args, **kwargs):
-    def fn(knowledge):
-        return args
+    def fn(knowledge, match):
+        def eval_arg(arg):
+            if type(arg) == types.LambdaType:
+                return arg(knowledge, match)
+            else:
+                return arg
+        return [eval_arg(arg) for arg in args]
     if 'priority' in kwargs:
         return Rule(pattern, kwargs['priority'])(fn)
     else:
