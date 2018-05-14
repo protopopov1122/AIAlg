@@ -1,3 +1,4 @@
+import types
 from expsystem.Error import ExpSystemException
 from expsystem.Match import Match
 
@@ -14,6 +15,12 @@ class FactBase:
             if restrict_matches and isinstance(value, Match):
                 raise ExpSystemException('Matches are restricted')
             self._fact[key] = value
+
+    def overlaps(self, fact):
+        for key in fact._fact.keys():
+            if key not in self._fact:
+                return False
+        return True
 
     def __getattr__(self, item):
         if item in self._fact:
@@ -38,15 +45,18 @@ class FactBase:
 
     def __eq__(self, other):
         for key, value in self._fact.items():
-            if key not in other._fact or \
-                value != other._fact[key]:
+            if key not in other._fact:
+                return False
+            if (isinstance(value, types.LambdaType) and not value(other._fact[key])) or \
+                    (not isinstance(value, types.LambdaType) and value != other._fact[key]):
                 return False
         return True
 
     def __hash__(self):
         res = 0
         for key, value in self._fact.items():
-            res += hash(key) + hash(value) * 1000
+            res += hash(key) + hash(value) * 29
+            res *= 31
         return res
 
     def __len__(self):

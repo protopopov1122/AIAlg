@@ -6,8 +6,14 @@ class Knowledge:
         self._facts = set(args)
 
     def add(self, *args):
-        facts = list(self._facts)
-        facts.extend(args)
+        arr = [arg for arg in args if arg is not None]
+        def check_overlap(fact, facts):
+            for f in facts:
+                if f.overlaps(fact):
+                    return True
+            return False
+        facts = [fact for fact in self._facts if not check_overlap(fact, arr)]
+        facts.extend(arr)
         return Knowledge(*facts)
 
     def add_fact(self, *args, **kwargs):
@@ -28,14 +34,13 @@ class Knowledge:
     def __add__(self, other):
         facts: set = self._facts.copy()
         if isinstance(other, Knowledge):
-            facts = facts.union(other._facts)
+            return self.add(*other._facts)
         elif type(other) == set:
-            facts = facts.union(other)
+            return self.add(*other)
         elif type(other) == list:
-            facts = facts.union(set(other))
+            return self.add(*other)
         else:
-            facts.add(other)
-        return Knowledge(*facts)
+            return self.add(other)
 
     def __sub__(self, other):
         return Knowledge(*list(self._facts.difference(other._facts)))

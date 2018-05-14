@@ -1,11 +1,11 @@
 import types
 
 
-def Rule(pattern, priority: int=0):
+def Rule(pattern=None, priority: int=0):
     def decorator(func):
         def wrapper(knowledge, *args, **kwargs):
-            if pattern.matches(knowledge):
-                match = pattern.match(knowledge)
+            if pattern is None or pattern.matches(knowledge):
+                match = pattern.match(knowledge) if pattern is not None else []
                 res = func(knowledge, match, *args, **kwargs)
                 if type(res) == list or type(res) == tuple:
                     return {
@@ -29,7 +29,7 @@ def Rule(pattern, priority: int=0):
 def Product(pattern, *args, **kwargs):
     def fn(knowledge, match):
         def eval_arg(arg):
-            if type(arg) == types.LambdaType:
+            if isinstance(arg, types.LambdaType):
                 return arg(knowledge, match)
             else:
                 return arg
