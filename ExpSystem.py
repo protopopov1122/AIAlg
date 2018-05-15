@@ -126,7 +126,7 @@ def main():
         Product(Pattern(backend_platform='win'), decision('Use C# with .NET Framework')),
         desktop_type,
         Product(Pattern(desktop='game'), decision('Just Unity. With C# of course')),
-        Product(Pattern(desktop='graphics'), decision('C++ and Vulkan will rock')),
+        Product(Pattern(desktop='graphics'), decision('C++ and Vulkan are right choice')),
         Product(Pattern(desktop='math'), decision('Use existing math libraries on C/C++ or even Fortran. And a lightweight graphics library')),
         Product(Pattern(application='desktop') & Pattern('portable'), decision('Use HTML/JS/CSS. Then wrap it by Elecron and Phonegap.')),
         query_desktop_app_type,
